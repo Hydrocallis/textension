@@ -4,11 +4,16 @@ import ctypes
 kmi_fields = ("type", "value", "alt", "ctrl", "shift",
               "any", "key_modifier", "oskey", "active")
 
-
+# Split version check between Blender 2.8 and Blender 3.0
 def bpy_version_check():
-    if bpy.app.version[1] < 82:
-        raise Exception("\nMinimum Blender version 2.82 required\n")
+    if bpy.app.version[0] == 2:
+        if bpy.app.version[1] < 82:
+            raise Exception("\nMinimum Blender version 2.82 required\n")
 
+    elif bpy.app.version[0] == 3:
+        if bpy.app.version[1] < 0:
+            raise Exception("\nMinimum Blender version 2.82 required\n")
+                
 
 def _prefs():
     addons = bpy.context.preferences.addons
