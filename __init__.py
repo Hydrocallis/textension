@@ -1,7 +1,23 @@
+if "bpy" in locals():
+    import importlib
+    # Summarize what you want to read into the list
+    reloadable_modules = [ 
+    # Re-register folders
+    "highlights",
+    "utils",
+
+    ]
+    # If something in the list is already there, trigger reload
+    for module in reloadable_modules: 
+        if module in locals():
+            importlib.reload(locals()[module])
+
+
 import bpy
 import _bpy
 from time import perf_counter, monotonic
 from collections import deque
+
 from . import highlights
 from . import utils
 
@@ -11,22 +27,15 @@ bl_info = {
     "description": "Convenience operators for text editor",
     "author": "kaio",
     "version": (1, 0, 1),
-    "blender": (2, 82, 0),
+    "blender": (3, 2, 0),
     "location": "Text Editor",
     "category": "Text Editor"
 }
 
 
-if locals().get('loaded'):
-    loaded = False
-    from importlib import reload
-    from sys import modules
 
-    modules[__name__] = reload(modules[__name__])
-    for name, module in modules.items():
-        if name.startswith(f"{__package__}."):
-            globals()[name] = reload(module)
-    del reload, modules
+
+
 
 prefs = None
 _call = _bpy.ops.call
@@ -714,7 +723,7 @@ class TEXTENSION_OT_cut(utils.TextMacro):
 
     @classmethod
     def register_keymaps(cls):
-        kmi_new(cls, "Text", cls.bl_idname, 'X', 'PRESS', ctrl=1)
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'X', 'PRESS', ctrl=1)
         kmi_new(cls, "Screen Editing", cls.bl_idname, 'X', 'PRESS',
                 ctrl=1, note="HIDDEN")
 
@@ -731,7 +740,7 @@ class TEXTENSION_OT_copy(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        kmi_new(cls, "Text", cls.bl_idname, 'C', 'PRESS', ctrl=1)
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'C', 'PRESS', ctrl=1)
         kmi_new(cls, "Screen Editing", cls.bl_idname, 'C', 'PRESS',
                 ctrl=1, note="HIDDEN")
 
@@ -778,7 +787,7 @@ class TEXTENSION_OT_paste(utils.TextMacro):
     @classmethod
     def register_keymaps(cls):
         name = cls.bl_idname
-        kmi_new(cls, "Text", name, 'V', 'PRESS', ctrl=1)
+        kmi_new(cls, "Text Generic", name, 'V', 'PRESS', ctrl=1)
         kmi_new(cls, "Screen Editing", cls.bl_idname, 'V', 'PRESS',
                 ctrl=1, note="HIDDEN")
 
@@ -918,8 +927,9 @@ class TEXTENSION_OT_insert(utils.TextMacro):
 
     @classmethod
     def register_keymaps(cls):
-        args = cls, "Text"
+        args = cls, "Text Generic"
         kmi_new(*args, cls.bl_idname, 'TEXTINPUT', 'ANY', note="HIDDEN")
+        args = cls, "Text"
         utils.kmi_mute(*args, idname="text.insert", type='TEXTINPUT')
         utils.kmi_mute(*args, idname="text.delete", type='BACK_SPACE', ctrl=0)
         utils.kmi_mute(*args, idname="text.delete", type='BACK_SPACE', ctrl=1)
@@ -971,10 +981,12 @@ class TEXTENSION_OT_delete(utils.TextMacro):
 
     @classmethod
     def register_keymaps(cls):
-        args = cls, "Text"
+        args = cls, "Text Generic"
         kmi_new(*args, cls.bl_idname, 'BACK_SPACE', 'PRESS')
         kmi_new(*args, cls.bl_idname, 'BACK_SPACE', 'PRESS', ctrl=1,
                 note="Delete Word")
+        args = cls, "Text"
+
         utils.kmi_mute(*args, idname="text.delete", type='BACK_SPACE', ctrl=1)
         utils.kmi_mute(*args, idname="text.delete", type='BACK_SPACE', ctrl=0)
 
@@ -1038,7 +1050,7 @@ class TEXTENSION_OT_extend_selection(utils.TextOperator):
     @classmethod
     def register_keymaps(cls):
         name = cls.bl_idname
-        kmi_new(cls, "Text", name, 'LEFTMOUSE', 'PRESS', shift=1)
+        kmi_new(cls, "Text Generic", name, 'LEFTMOUSE', 'PRESS', shift=1)
 
     _stop_keys = {'LEFTMOUSE', 'RIGHTMOUSE', 'MIDDLEMOUSE',
                   'ESC', 'SPACE', 'RET'}
@@ -1170,7 +1182,7 @@ class TEXTENSION_OT_line_break(utils.TextMacro):
 
     @classmethod
     def register_keymaps(cls):
-        utils.kmi_args(cls, "Text", cls.bl_idname, 'PRESS')
+        utils.kmi_args(cls, "Text Generic", cls.bl_idname, 'PRESS')
         kmi_new('RET')
         kmi_new('RET', ctrl=1, note="Line Break Jump")
         kmi_new('RET', shift=1, note="Line Break Context")
@@ -1229,7 +1241,7 @@ class TEXTENSION_OT_unindent(utils.TextMacro):
 
     @classmethod
     def register_keymaps(cls):
-        kmi_new(cls, "Text", cls.bl_idname, 'TAB', 'PRESS', shift=1)
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'TAB', 'PRESS', shift=1)
 
     @classmethod
     def _register(cls):
@@ -1245,8 +1257,8 @@ class TEXTENSION_OT_move_toggle(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        kmi_new(cls, "Text", cls.bl_idname, 'HOME', 'PRESS')
-        kmi_new(cls, "Text", cls.bl_idname, 'HOME', 'PRESS', shift=1,
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'HOME', 'PRESS')
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'HOME', 'PRESS', shift=1,
                 note="Move Toggle Select")
 
     def invoke(self, context, event):
@@ -1272,7 +1284,7 @@ class TEXTENSION_OT_expand_to_brackets(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        kmi_new(cls, "Text", cls.bl_idname, 'A', 'PRESS', alt=1)
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'A', 'PRESS', alt=1)
 
     def execute(self, context):
         tc = TextContext(context)
@@ -1354,7 +1366,7 @@ class TEXTENSION_OT_expand_to_path(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        kmi_new(cls, "Text", cls.bl_idname, 'W', 'PRESS', alt=1)
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'W', 'PRESS', alt=1)
 
     def execute(self, context):
         tc = TextContext(bpy.context)
@@ -1443,7 +1455,7 @@ class TEXTENSION_OT_scroll(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        utils.kmi_args(cls, "Text", cls.bl_idname, 'PRESS')
+        utils.kmi_args(cls, "Text Generic", cls.bl_idname, 'PRESS')
 
         kmi_new('HOME', ctrl=1, note="Scroll to Top").type = 'TOP'
         kmi_new('HOME', ctrl=1, shift=1, note="Select to Top")
@@ -1573,7 +1585,7 @@ class TEXTENSION_OT_find(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        utils.kmi_args(cls, "Text", cls.bl_idname, 'PRESS', alt=1)
+        utils.kmi_args(cls, "Text Generic", cls.bl_idname, 'PRESS', alt=1)
         kmi_new('F', note="Find Next").direction = 'NEXT'
         kmi_new('D', note="Find Previous").direction = 'PREV'
 
@@ -1694,7 +1706,7 @@ class TEXTENSION_OT_cursor_history(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        utils.kmi_args(cls, "Text", cls.bl_idname, 'PRESS')
+        utils.kmi_args(cls, "Text Generic", cls.bl_idname, 'PRESS')
         kmi_new('BUTTON4MOUSE', note="Cursor History Back").dir = 'BACK'
         kmi_new('BUTTON5MOUSE', note="Cursor History Forward").dir = 'FORWARD'
 
@@ -1719,8 +1731,10 @@ class TEXTENSION_OT_cursor(utils.TextOperator):
     @classmethod
     def register_keymaps(cls):
         note = "Set Cursor"
-        args = cls, "Text"
+        args = cls, "Text Generic"
         kmi_new(*args, cls.bl_idname, 'LEFTMOUSE', 'PRESS', note=note)
+        args = cls, "Text"
+        
         utils.kmi_mute(*args, idname="text.selection_set")
         utils.kmi_mute(*args, idname="text.cursor_set")
         utils.kmi_mute(*args, type='LEFTMOUSE', value='DOUBLE_CLICK')
@@ -1927,7 +1941,7 @@ class TEXTENSION_OT_select_all(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        kmi_new(cls, "Text", cls.bl_idname, 'A', 'PRESS', ctrl=1)
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'A', 'PRESS', ctrl=1)
 
     def execute(self, context):
         context.space_data.text.select_set(0, 0, -1, -1)
@@ -1983,7 +1997,7 @@ class TEXTENSION_OT_line_select(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        args = cls, "Text", cls.bl_idname
+        args = cls, "Text Generic", cls.bl_idname
         kmi_new(*args, 'MOUSEMOVE', 'ANY', note="HIDDEN")
 
     @classmethod
@@ -2077,7 +2091,7 @@ class TEXTENSION_OT_scroll_continuous(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        kmi_new(cls, "Text", cls.bl_idname, 'MIDDLEMOUSE', 'PRESS')
+        kmi_new(cls, "Text Generic", cls.bl_idname, 'MIDDLEMOUSE', 'PRESS')
 
     def invoke(self, context, event):
         region = context.region
@@ -2141,7 +2155,7 @@ class TEXTENSION_OT_scroll2(utils.TextOperator):
 
     @classmethod
     def register_keymaps(cls):
-        utils.kmi_args(cls, "Text", cls.bl_idname, 'PRESS')
+        utils.kmi_args(cls, "Text Generic", cls.bl_idname, 'PRESS')
         kmi_new('WHEELDOWNMOUSE', note="Mouse Scroll Up").direction = 'DOWN'
         kmi_new('WHEELUPMOUSE', note="Mouse Scroll Down").direction = 'UP'
 
