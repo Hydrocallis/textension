@@ -6,8 +6,13 @@ kmi_fields = ("type", "value", "alt", "ctrl", "shift",
 
 
 def bpy_version_check():
-    if bpy.app.version[1] < 82:
-        raise Exception("\nMinimum Blender version 2.82 required\n")
+    if bpy.app.version[0] == 2:
+        if bpy.app.version[1] < 82:
+            raise Exception("\nMinimum Blender version 2.82 required\n")
+
+    elif bpy.app.version[0] == 3:
+        if bpy.app.version[1] < 0:
+            raise Exception("\nMinimum Blender version 2.82 required\n")
 
 
 def _prefs():
